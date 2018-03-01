@@ -4,9 +4,6 @@ import io.reactivex.*
 import io.reactivex.disposables.Disposable
 import io.reactivex.internal.observers.DisposableLambdaObserver
 import io.reactivex.observers.*
-import io.reactivex.subscribers.DefaultSubscriber
-import io.reactivex.subscribers.DisposableSubscriber
-import io.reactivex.subscribers.ResourceSubscriber
 import org.junit.Test
 import java.util.concurrent.TimeUnit
 
@@ -50,6 +47,7 @@ class TestObserver {
 
     /**
      * 观察者；接收数据流
+     * 列举所有Observer
      */
     @Test
     fun testObserver() {
@@ -64,6 +62,7 @@ class TestObserver {
             override fun onNext(t: Int) {}
             override fun onError(e: Throwable) {}
         }
+
         /**
          * 顶级接口[SingleObserver]
          */
@@ -72,6 +71,7 @@ class TestObserver {
             override fun onSubscribe(d: Disposable) {}
             override fun onError(e: Throwable) {}
         }
+
         /**
          * 顶级接口[CompletableObserver]
          */
@@ -80,6 +80,7 @@ class TestObserver {
             override fun onSubscribe(d: Disposable) {}
             override fun onError(e: Throwable) {}
         }
+
         /**
          * 顶级接口[MaybeObserver]
          */
@@ -89,6 +90,7 @@ class TestObserver {
             override fun onSubscribe(d: Disposable) {}
             override fun onError(e: Throwable) {}
         }
+
         //===========================================================================
         // 二级
         /**
@@ -99,6 +101,7 @@ class TestObserver {
             override fun onNext(t: Int) {}
             override fun onError(e: Throwable) {}
         }
+
         /**
          * [Observer]的直接抽象子类
          */
@@ -107,6 +110,7 @@ class TestObserver {
             override fun onNext(t: Int) {}
             override fun onError(e: Throwable) {}
         }
+
         /**
          * [Observer]的直接抽象子类
          */
@@ -115,12 +119,14 @@ class TestObserver {
             override fun onNext(t: Int) {}
             override fun onError(e: Throwable) {}
         }
+
         /**
          * [Observer]的直接子类
          */
         DisposableLambdaObserver<Int>(observer,
                 { println("onSubscribe:" + it) },
                 { println("onDispose") })
+
         //===========================================================================
         // 三级
         //所有的ResourceXXXObserver均继承了Disposable接口
@@ -131,6 +137,7 @@ class TestObserver {
             override fun onSuccess(t: Int) {}
             override fun onError(e: Throwable) {}
         }
+
         /**
          * [CompletableObserver]的直接子类
          */
@@ -138,6 +145,7 @@ class TestObserver {
             override fun onComplete() {}
             override fun onError(e: Throwable) {}
         }
+
         /**
          * [MaybeObserver]的直接子类
          */
@@ -146,6 +154,7 @@ class TestObserver {
             override fun onComplete() {}
             override fun onError(e: Throwable) {}
         }
+
         //===========================================================================
         // 三级
         //所有的DisposableXXXObserver均继承了Disposable接口
@@ -156,6 +165,7 @@ class TestObserver {
             override fun onSuccess(t: Int) {}
             override fun onError(e: Throwable) {}
         }
+
         /**
          * [CompletableObserver]的直接子类
          */
@@ -163,6 +173,7 @@ class TestObserver {
             override fun onComplete() {}
             override fun onError(e: Throwable) {}
         }
+
         /**
          * [MaybeObserver]的直接子类
          */
@@ -173,28 +184,38 @@ class TestObserver {
         }
     }
 
+    /**
+     * 测试多个观察者订阅一个数据源
+     * 结果：每个观察者订阅时，才会新建一个数据源进行发射，所以实际是每个观察者分别订不同的新建数据源
+     */
     @Test
-    fun test1() {
-        Observable
-//                .just(1L, 2, 3, 4, 5)
-                .interval(1, TimeUnit.SECONDS)
-                .subscribe(object : Observer<Long> {
-                    override fun onComplete() {
-                        println("onComplete")
-                    }
+    fun testMultiObserver() {
+        val interval = Observable.interval(500, TimeUnit.MILLISECONDS)
 
-                    override fun onSubscribe(d: Disposable) {
-                        println("onSubscribe")
-                    }
+        class MyObserver(private val tag: String) : Observer<Long> {
+            init {
+                println("$tag hash=${hashCode()}")
+            }
 
-                    override fun onNext(t: Long) {
-                        println("onNext: $t")
-                    }
+            override fun onComplete() {
+                println("$tag onComplete")
+            }
 
-                    override fun onError(e: Throwable) {
-                        println("onError: ${e.localizedMessage}")
-                    }
-                })
+            override fun onSubscribe(d: Disposable) {
+                println("$tag ${d.hashCode()} onSubscribe")
+            }
+
+            override fun onNext(t: Long) {
+                println("$tag onNext: $t")
+            }
+
+            override fun onError(e: Throwable) {
+                e.printStackTrace()
+            }
+        }
+        interval.subscribe(MyObserver("A"))
+        Thread.sleep(1_000)
+        interval.subscribe(MyObserver("B"))
         Thread.sleep(10_000)
     }
 }
