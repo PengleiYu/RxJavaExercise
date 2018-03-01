@@ -191,31 +191,9 @@ class TestObserver {
     @Test
     fun testMultiObserver() {
         val interval = Observable.interval(500, TimeUnit.MILLISECONDS)
-
-        class MyObserver(private val tag: String) : Observer<Long> {
-            init {
-                println("$tag hash=${hashCode()}")
-            }
-
-            override fun onComplete() {
-                println("$tag onComplete")
-            }
-
-            override fun onSubscribe(d: Disposable) {
-                println("$tag ${d.hashCode()} onSubscribe")
-            }
-
-            override fun onNext(t: Long) {
-                println("$tag onNext: $t")
-            }
-
-            override fun onError(e: Throwable) {
-                e.printStackTrace()
-            }
-        }
-        interval.subscribe(MyObserver("A"))
+        interval.subscribe(SimpleObserver("A"))
         Thread.sleep(1_000)
-        interval.subscribe(MyObserver("B"))
+        interval.subscribe(SimpleObserver("B"))
         Thread.sleep(10_000)
     }
 }
