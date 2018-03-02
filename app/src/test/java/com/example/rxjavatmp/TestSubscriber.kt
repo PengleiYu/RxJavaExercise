@@ -81,7 +81,7 @@ class TestSubscriber {
      * [DefaultSubscriber], [ResourceSubscriber], [DisposableSubscriber]
      */
     @Test
-    fun testSubscriberDiff() {
+    fun testSubscriberDifferent() {
         val defaultSubscriber: DefaultSubscriber<Int> = object : DefaultSubscriber<Int>(), TagInterface {
             /**
              * 默认的[onStart]是请求[Long.MAX_VALUE]
