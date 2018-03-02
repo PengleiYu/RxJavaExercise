@@ -49,7 +49,7 @@ open class SimpleObservable(private val TAG: String) : Observable<Long>() {
 /**
  * 可被多个[Observer]注册，但只发射同一套数据流的[Observable]
  */
-open class SimpleObservable2(private val TAG: String) : Observable<Long>() {
+open class AdvanceObservable(private val TAG: String) : Observable<Long>() {
     init {
         println("SimpleObservable $TAG: hash = ${super.hashCode()}")
     }

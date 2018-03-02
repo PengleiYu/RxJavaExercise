@@ -9,7 +9,7 @@ import org.junit.Test
 class TestScheduler {
     @Test
     fun test() {
-        val observable1 = SimpleObservable2("A")
+        val observable1 = AdvanceObservable("A")
 //        observable1
 //                .subscribeOn(Schedulers.computation())
 //                .observeOn(Schedulers.io())
