@@ -7,6 +7,7 @@ import io.reactivex.observers.DefaultObserver
 import io.reactivex.subscribers.DefaultSubscriber
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
+import java.util.concurrent.TimeUnit
 
 /**
  * Created by yupenglei on 18/3/1.
@@ -17,6 +18,10 @@ import org.reactivestreams.Subscription
  * 每0.5秒发射一个数据
  */
 open class SimpleObservable(private val TAG: String) : Observable<Long>() {
+    init {
+        println("SimpleObservable $TAG: hash = ${super.hashCode()}")
+    }
+
     /**
      * [Observable.subscribeActual]是真正调用观察者进行发布的地方
      * 由于未实现[Disposable]，所以不能调用observer的onSubscribe函数
@@ -42,9 +47,39 @@ open class SimpleObservable(private val TAG: String) : Observable<Long>() {
 }
 
 /**
+ * 可被多个[Observer]注册，但只发射同一套数据流的[Observable]
+ */
+open class SimpleObservable2(private val TAG: String) : Observable<Long>() {
+    init {
+        println("SimpleObservable $TAG: hash = ${super.hashCode()}")
+    }
+
+    fun start() {
+        Observable.interval(500, TimeUnit.MILLISECONDS)
+                .subscribe { aLong ->
+                    println("${getTag()} subscribe: $aLong")
+                    mObserverList.forEach { it.onNext(aLong) }
+                }
+    }
+
+    /**
+     * 关键之处
+     */
+    private val mObserverList = mutableListOf<Observer<in Long>>()
+
+    override fun subscribeActual(observer: Observer<in Long>) {
+        mObserverList.add(observer)
+    }
+
+    protected fun getTag(): String {
+        return Thread.currentThread().name + " $TAG"
+    }
+}
+
+/**
  * 对[Observer]的简单实现，可参考[DefaultObserver]的实现
  */
-open class SimpleObserver(private val TAG: String) : Observer<Long> {
+open class SimpleObserver<T>(private val TAG: String) : Observer<T> {
     /**
      * 此处不可使用[lateinit var]
      * 因为Observable可能不调用[onSubscribe]函数，如此[disposable]就无法初始化
@@ -69,7 +104,7 @@ open class SimpleObserver(private val TAG: String) : Observer<Long> {
         disposable = d
     }
 
-    override fun onNext(t: Long) {
+    override fun onNext(t: T) {
         println("${getTag()} onNext: $t")
     }
 

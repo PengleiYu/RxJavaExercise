@@ -16,7 +16,7 @@ class TestObservable {
         val observable = Observable.create(ObservableOnSubscribe<Long> { emitter ->
             (0L..100).forEach { emitter.onNext(it) }
         })
-        observable.subscribe(object : SimpleObserver("A") {})
+        observable.subscribe(object : SimpleObserver<Long>("A") {})
     }
 
     /**
@@ -25,7 +25,7 @@ class TestObservable {
     @Test
     fun testSimpleObservable() {
         val observable: Observable<Long> = SimpleObservable("A")
-        observable.subscribe(object : SimpleObserver("B") {
+        observable.subscribe(object : SimpleObserver<Long>("B") {
             override fun onNext(t: Long) {
                 super.onNext(t)
                 if (t == 5L) disposable?.dispose()
@@ -70,7 +70,7 @@ class TestObservable {
         disposableObservable
                 .subscribeOn(Schedulers.computation())
                 .observeOn(Schedulers.computation())
-                .subscribe(object : SimpleObserver("B") {
+                .subscribe(object : SimpleObserver<Long>("B") {
                     override fun onNext(t: Long) {
                         super.onNext(t)
                         if (t == 10L) disposable?.dispose()

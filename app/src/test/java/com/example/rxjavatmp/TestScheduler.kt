@@ -1,11 +1,6 @@
 package com.example.rxjavatmp
 
-import io.reactivex.Observable
-import io.reactivex.ObservableOnSubscribe
-import io.reactivex.Observer
-import io.reactivex.internal.operators.observable.ObservableSubscribeOn
 import io.reactivex.schedulers.Schedulers
-import io.reactivex.subjects.Subject
 import org.junit.Test
 
 /**
@@ -14,22 +9,28 @@ import org.junit.Test
 class TestScheduler {
     @Test
     fun test() {
-        val observableOnSubscribe = ObservableOnSubscribe<Long> {
-            it.onNext(1)
-        }
-        Observable
-                .create(observableOnSubscribe)
+        val observable1 = SimpleObservable2("A")
+//        observable1
+//                .subscribeOn(Schedulers.computation())
+//                .observeOn(Schedulers.io())
+//                .subscribe(SimpleObserver("B"))
+//        observable1.subscribeOn(Schedulers.io())
+//                .observeOn(Schedulers.computation())
+//                .subscribe(SimpleObserver("C"))
+
+        val observable2 = observable1
                 .subscribeOn(Schedulers.computation())
                 .observeOn(Schedulers.io())
+        observable2.subscribe(SimpleObserver("B"))
+        observable1.start()
+        Thread.sleep(1000)
+        observable2.subscribe(SimpleObserver("C"))
 
-        ObservableSubscribeOn.create(observableOnSubscribe)
-//        Subject
-        object :Observable<Long>(){
-            override fun subscribeActual(observer: Observer<in Long>?) {
 
-            }
-        }
-    }
-    @Test fun test2(){
+//        val observable2 = SimpleObservable("C")
+        //todo 似乎必须subscribeOn
+//        observable2.observeOn(Schedulers.io())
+//                .subscribe(SimpleObserver("D"))
+        Thread.sleep(1000_000)
     }
 }
