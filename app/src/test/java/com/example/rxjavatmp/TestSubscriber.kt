@@ -214,35 +214,13 @@ class TestSubscriber {
             }
         }
 
-        class MySubscriber(private val TAG: String) : Subscriber<Int> {
-            /**
-             * 开始时，会传入[Subscription]，使用[Subscription.request]去请求数据
-             * 然后数据才会挨个发送
-             */
-            override fun onSubscribe(s: Subscription) {
-                s.request(5)
-            }
-
-            override fun onComplete() {
-                println("$TAG onComplete")
-            }
-
-            override fun onNext(t: Int) {
-                println("$TAG onNext: $t")
-            }
-
-            override fun onError(t: Throwable) {
-                println("$TAG onError: ${t.localizedMessage}")
-            }
-        }
-
         val flowable = Flowable.create(source, BackpressureStrategy.ERROR)
                 .subscribeOn(Schedulers.computation())
         /**
          * A和B获取的值相同
          */
-        flowable.subscribe(MySubscriber("A"))
-        flowable.subscribe(MySubscriber("B"))
+        flowable.subscribe(SimpleSubscriber("A"))
+        flowable.subscribe(SimpleSubscriber("B"))
         Thread.sleep(10_000)
     }
 }
