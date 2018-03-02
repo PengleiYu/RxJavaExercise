@@ -187,6 +187,9 @@ class TestObserver {
     /**
      * 测试多个观察者订阅一个数据源
      * 结果：每个观察者订阅时，才会新建一个数据源进行发射，所以实际是每个观察者分别订不同的新建数据源
+     * 真实原因：每次订阅时都会调用[Observable]的subscribeActual函数，在该函数内进行了新interval线程的创建执行，
+     * 所以若想数据源不变，则不应将数据源的创建和发射放在subscribeActual函数中，应仅在该函数内进行[Observer]的保存
+     * 详情见自定义的[AdvanceObservable]
      */
     @Test
     fun testMultiObserver() {
