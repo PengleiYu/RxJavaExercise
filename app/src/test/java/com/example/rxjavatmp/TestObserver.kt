@@ -11,40 +11,6 @@ import java.util.concurrent.TimeUnit
  * Created by yupenglei on 18/2/26.
  */
 class TestObserver {
-    private val completeBlock: () -> Unit = { println("onCompleted") }
-    private val errorBlock: (Throwable) -> Unit = { println(it) }
-//    private val nextBlock: (Any) -> Unit = { println(it) }
-
-    @Test
-    fun testFlowable() {
-        Flowable.just("Hello world!")
-                .subscribe { println(it) }
-    }
-
-    @Test
-    fun testObservable() {
-        Observable.just("Hello world!")
-                .subscribe { println(it) }
-    }
-
-    @Test
-    fun testSingle() {
-        Single.just("Hello world!")
-                .subscribe({ println(it) }, errorBlock)
-    }
-
-    @Test
-    fun testCompletable() {
-        Completable.fromCallable { }
-                .subscribe(completeBlock, errorBlock)
-    }
-
-    @Test
-    fun testMayBe() {
-        Maybe.just("Hello world!")
-                .subscribe({ println(it) }, errorBlock, completeBlock)
-    }
-
     /**
      * 观察者；接收数据流
      * 列举所有Observer
