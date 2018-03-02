@@ -24,18 +24,8 @@ class TestObservable {
      */
     @Test
     fun testSimpleObservable() {
-        val observable: Observable<Long> = object : Observable<Long>() {
-            /**
-             * [Observable.subscribeActual]是真正调用观察者进行发布的地方
-             * 由于未实现[Disposable]，所以不能调用observer的onSubscribe函数
-             */
-            override fun subscribeActual(observer: Observer<in Long>) {
-//                observer.onSubscribe()
-                (0L..10).forEach { observer.onNext(it) }
-                observer.onComplete()
-            }
-        }
-        observable.subscribe(object : SimpleObserver("A") {
+        val observable: Observable<Long> = SimpleObservable("A")
+        observable.subscribe(object : SimpleObserver("B") {
             override fun onNext(t: Long) {
                 super.onNext(t)
                 if (t == 5L) disposable?.dispose()
@@ -49,33 +39,38 @@ class TestObservable {
      */
     @Test
     fun testDisposableObservable() {
-        val disposableObservable: Observable<Long> = object : Observable<Long>(), Disposable {
-            private var isDisposed = false
-            override fun isDisposed(): Boolean = isDisposed
-
-            override fun dispose() {
-                isDisposed = true
-            }
+        val disposableObservable: Observable<Long> = object : SimpleObservable("A"), Disposable {
+            private var isDisposable: Boolean = false
 
             override fun subscribeActual(observer: Observer<in Long>) {
                 observer.onSubscribe(this)
-                for (i in 0L..100) {
-                    if (isDisposed) break
-                    println("${Thread.currentThread().name} subscribeActual: $i")
+                for (i in 0..1000L) {
+                    if (isDisposable) break
                     observer.onNext(i)
+                    println("${getTag()} subscribeActual: $i")
                     try {
+                        /**
+                         * todo [Observer]调用[Disposable.dispose]函数会导致sleep被打断，原理未知
+                         */
                         Thread.sleep(500)
                     } catch (e: Exception) {
+                        e.printStackTrace()
                         observer.onError(e)
                     }
                 }
                 observer.onComplete()
             }
+
+            override fun isDisposed(): Boolean = isDisposed
+
+            override fun dispose() {
+                isDisposable = true
+            }
         }
         disposableObservable
                 .subscribeOn(Schedulers.computation())
                 .observeOn(Schedulers.computation())
-                .subscribe(object : SimpleObserver("A") {
+                .subscribe(object : SimpleObserver("B") {
                     override fun onNext(t: Long) {
                         super.onNext(t)
                         if (t == 10L) disposable?.dispose()

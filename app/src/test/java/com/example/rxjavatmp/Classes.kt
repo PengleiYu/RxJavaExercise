@@ -1,5 +1,6 @@
 package com.example.rxjavatmp
 
+import io.reactivex.Observable
 import io.reactivex.Observer
 import io.reactivex.disposables.Disposable
 import io.reactivex.observers.DefaultObserver
@@ -10,6 +11,35 @@ import org.reactivestreams.Subscription
 /**
  * Created by yupenglei on 18/3/1.
  */
+
+/**
+ * 简单的[Observable]实现
+ * 每0.5秒发射一个数据
+ */
+open class SimpleObservable(private val TAG: String) : Observable<Long>() {
+    /**
+     * [Observable.subscribeActual]是真正调用观察者进行发布的地方
+     * 由于未实现[Disposable]，所以不能调用observer的onSubscribe函数
+     */
+    override fun subscribeActual(observer: Observer<in Long>) {
+//                observer.onSubscribe()
+        for (i in 0L..1000) {
+            println("${getTag()} subscribeActual: $i")
+            observer.onNext(i)
+            try {
+                Thread.sleep(500)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                observer.onError(e)
+            }
+        }
+        observer.onComplete()
+    }
+
+    protected fun getTag(): String {
+        return Thread.currentThread().name + " $TAG"
+    }
+}
 
 /**
  * 对[Observer]的简单实现，可参考[DefaultObserver]的实现
