@@ -146,3 +146,11 @@ class SimpleSubscriber(private val TAG: String) : Subscriber<Int> {
         t.printStackTrace()
     }
 }
+
+class ThreadLogger {
+    companion object {
+        fun log(any: Any) {
+            println(Thread.currentThread().name + ": $any")
+        }
+    }
+}

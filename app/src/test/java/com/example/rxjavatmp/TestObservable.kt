@@ -66,8 +66,7 @@ class TestObservable {
             fun start() {
                 Observable.interval(500, TimeUnit.MILLISECONDS)
                         .subscribe {
-                            // todo 需要一个打印线程信息的工具方法
-                            println("Emitter send $it")
+                            ThreadLogger.log("Emitter send $it")
                             mEmitter?.onNext(it)
                         }
             }
