@@ -1,5 +1,7 @@
 package com.example.rxjavatmp
 
+import android.bluetooth.le.ScanCallback
+import android.bluetooth.le.ScanResult
 import io.reactivex.*
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
@@ -50,41 +52,6 @@ class TestObservable {
         Single.just(s).subscribe(successCallback, errorCallback)
         Completable.fromRunnable { println("Done!!!") }.subscribe(completeCallback, errorCallback)
         Maybe.just(s).subscribe(successCallback, errorCallback, completeCallback)
-    }
-
-    /**
-     * 创建一个带独立发射数据的发射源
-     */
-    @Test
-    fun testObservableCreate() {
-        val emitter = object : ObservableOnSubscribe<Long> {
-            private var mEmitter: ObservableEmitter<Long>? = null
-            override fun subscribe(emitter: ObservableEmitter<Long>) {
-                mEmitter = emitter
-            }
-
-            fun start() {
-                Observable.interval(500, TimeUnit.MILLISECONDS)
-                        .subscribe {
-                            ThreadLogger.log("Emitter send $it")
-                            mEmitter?.onNext(it)
-                        }
-            }
-
-            fun next(aLong: Long) {
-                mEmitter?.onNext(aLong)
-            }
-        }
-        emitter.start()
-        Thread.sleep(3000)
-        Observable.create(emitter)
-                .subscribe(object : SimpleObserver<Long>("B") {})
-        Thread.sleep(1000)
-        emitter.next(666)
-        Thread.sleep(1000)
-        emitter.next(888)
-
-        Thread.sleep(1_000_000)
     }
 
     /**
@@ -145,5 +112,78 @@ class TestObservable {
                     }
                 })
         Thread.sleep(1_000_000)
+    }
+
+    /**
+     * 创建一个带独立发射数据的发射源
+     */
+    @Test
+    fun testObservableCreate() {
+        val emitter = object : ObservableOnSubscribe<Long> {
+            private var mObserver: ObservableEmitter<Long>? = null
+            override fun subscribe(emitter: ObservableEmitter<Long>) {
+                mObserver = emitter
+            }
+
+            fun start() {
+                Observable.interval(500, TimeUnit.MILLISECONDS)
+                        .subscribe {
+                            ThreadLogger.log("Emitter send $it")
+                            mObserver?.onNext(it)
+                        }
+            }
+
+            fun next(aLong: Long) {
+                mObserver?.onNext(aLong)
+            }
+        }
+        emitter.start()
+        Thread.sleep(3000)
+        Observable.create(emitter)
+                .doOnSubscribe { }
+                .subscribe(object : SimpleObserver<Long>("B") {})
+        Thread.sleep(1000)
+        emitter.next(666)
+        Thread.sleep(1000)
+        emitter.next(888)
+
+        Thread.sleep(1_000_000)
+    }
+
+    /**
+     * todo 待测试[Emitter]
+     */
+
+    class BleEmitter : ScanCallback(), ObservableOnSubscribe<ScanResult> {
+        private var mObserver: ObservableEmitter<ScanResult>? = null
+        override fun subscribe(emitter: ObservableEmitter<ScanResult>) {
+            mObserver = emitter
+        }
+
+        override fun onScanResult(callbackType: Int, result: ScanResult) {
+            mObserver?.onNext(result)
+        }
+
+        override fun onScanFailed(errorCode: Int) {
+            mObserver?.onError(Exception("onScanFailed: $errorCode"))
+        }
+    }
+
+    /**
+     * 直接实现[ObservableSource]并不好，将无法使用[Observable]的各种方法
+     */
+    class BleEmitter2 : ScanCallback(), ObservableSource<ScanResult> {
+        private var mObserver: Observer<in ScanResult>? = null
+        override fun subscribe(observer: Observer<in ScanResult>) {
+            mObserver = observer
+        }
+
+        override fun onScanResult(callbackType: Int, result: ScanResult) {
+            mObserver?.onNext(result)
+        }
+
+        override fun onScanFailed(errorCode: Int) {
+            mObserver?.onError(Exception("onScanFailed: $errorCode"))
+        }
     }
 }
