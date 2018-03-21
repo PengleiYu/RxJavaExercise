@@ -6,6 +6,7 @@ import org.junit.Test
 import java.util.concurrent.TimeUnit
 
 /**
+ * 尝试实现多观察者的数据源
  * Created by yupenglei on 18/3/7.
  */
 class TestMultiObserverObservable {
